@@ -1,28 +1,13 @@
-import { useCallback, useMemo, useState } from "react";
+import { useContext } from "react";
 
-import { AuthContext } from "./AuthContext";
-import { getSession, login, logout } from "../services/authService";
+import { AppContext } from "../context/AppContext";
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(getSession);
+export function useApp() {
+  const context = useContext(AppContext);
 
-  const signIn = useCallback(async (email, password) => {
-    const session = await login(email, password);
+  if (!context) {
+    throw new Error("useApp deve ser usado dentro de <AppProvider>.");
+  }
 
-    setUser(session);
-
-    return session;
-  }, []);
-
-  const signOut = useCallback(() => {
-    logout();
-    setUser(null);
-  }, []);
-
-  const value = useMemo(
-    () => ({ user, signIn, signOut }),
-    [user, signIn, signOut]
-  );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return context;
 }
