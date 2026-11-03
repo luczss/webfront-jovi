@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+
+import { useCallback, useState } from "react";
 
 /**
  * useState persistido no localStorage.
@@ -17,16 +18,26 @@ export function useLocalStorage(key, initialValue) {
 
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-      setError((current) => (current ? "" : current));
-    } catch {
-      setError(
-        "Não foi possível salvar no navegador (armazenamento cheio ou bloqueado)."
-      );
-    }
-  }, [key, value]);
+  const updateValue = useCallback(
+    (nextValue) => {
+      const newValue =
+        typeof nextValue === "function"
+          ? nextValue(value)
+          : nextValue;
 
-  return [value, setValue, error];
+      setValue(newValue);
+
+      try {
+        localStorage.setItem(key, JSON.stringify(newValue));
+        setError("");
+      } catch {
+        setError(
+          "Não foi possível salvar no navegador (armazenamento cheio ou bloqueado)."
+        );
+      }
+    },
+    [key, value]
+  );
+
+  return [value, updateValue, error];
 }

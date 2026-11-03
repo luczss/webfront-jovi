@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -12,10 +13,8 @@ import { useFrameAnalysis } from "../hooks/useFrameAnalysis";
 import { analyzeStill } from "../utils/imageAnalysis";
 
 // Modo Correria: captura quando a qualidade geral se mantém alta.
-// (A especificação da Sprint 2 prevê 95%; com análise por algoritmos
-// simples esse valor quase nunca é atingido, então usamos 85%.)
 const CORRERIA_THRESHOLD = 85;
-const CORRERIA_STREAK = 3; // análises seguidas (≈ 1,5 s)
+const CORRERIA_STREAK = 3;
 const CORRERIA_COOLDOWN_MS = 5000;
 
 export default function CameraPage() {
@@ -78,6 +77,7 @@ export default function CameraPage() {
     };
   }, [aiEnabled, analysis, videoRef]);
 
+  // Captura automática do Modo Correria.
   useEffect(() => {
     if (!correriaOn || !analysis) {
       streakRef.current = 0;
@@ -85,7 +85,9 @@ export default function CameraPage() {
     }
 
     streakRef.current =
-      analysis.overall >= CORRERIA_THRESHOLD ? streakRef.current + 1 : 0;
+      analysis.overall >= CORRERIA_THRESHOLD
+        ? streakRef.current + 1
+        : 0;
 
     const cooledDown =
       Date.now() - lastShotRef.current > CORRERIA_COOLDOWN_MS;
@@ -98,9 +100,6 @@ export default function CameraPage() {
 
       if (shot) {
         saveCapture(shot);
-        setNotice(
-          `Modo Correria: foto salva automaticamente (${shot.overall}%).`
-        );
       }
     }
   }, [analysis, correriaOn, takePhoto, saveCapture]);
@@ -117,6 +116,8 @@ export default function CameraPage() {
   }
 
   function handleSave() {
+    if (!lastCapture) return;
+
     saveCapture(lastCapture);
     setLastCapture(null);
     setNotice("Foto salva na galeria.");
@@ -197,6 +198,12 @@ export default function CameraPage() {
             <Link to="/galeria" className="underline">
               Abrir galeria
             </Link>
+          </p>
+        )}
+
+        {correriaOn && (
+          <p className="text-lime">
+            Modo Correria ativo: as fotos serão salvas automaticamente.
           </p>
         )}
       </div>

@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useState } from "react";
 
 import { fetchPhotos } from "../services/photoService";
@@ -15,9 +16,6 @@ export function usePhotoReferences(limit = 12) {
 
   useEffect(() => {
     const controller = new AbortController();
-
-    setStatus("loading");
-    setError("");
 
     fetchPhotos({ page, limit, signal: controller.signal })
       .then((result) => {
@@ -44,8 +42,17 @@ export function usePhotoReferences(limit = 12) {
     return () => controller.abort();
   }, [page, limit, reloadKey]);
 
-  const loadMore = useCallback(() => setPage((value) => value + 1), []);
-  const retry = useCallback(() => setReloadKey((value) => value + 1), []);
+  const loadMore = useCallback(() => {
+    setError("");
+    setStatus("loading");
+    setPage((value) => value + 1);
+  }, []);
+
+  const retry = useCallback(() => {
+    setError("");
+    setStatus("loading");
+    setReloadKey((value) => value + 1);
+  }, []);
 
   return { photos, status, error, loadMore, retry };
 }
